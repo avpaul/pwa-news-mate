@@ -39,9 +39,6 @@ const showArticle = ({
 `;
   const node = document.createElement("template");
   node.innerHTML = template;
-  // node.content.children[0].addEventListener("click", () => {
-  //   showArticle(article);
-  // });
   node.content.children[0].children[0].children[0].addEventListener(
     "click",
     () => {
@@ -134,7 +131,7 @@ const renderArticles = async () => {
   self.addEventListener("beforeinstallprompt", evt => {
     evt.preventDefault();
     // Stash the event so it can be triggered later.
-    deferredPrompt = event;
+    deferredPrompt = evt;
     document.querySelector("#installBtn").addEventListener("click", () => {
       deferredPrompt.prompt();
       deferredPrompt.userChoice.then(choice => {
@@ -145,6 +142,28 @@ const renderArticles = async () => {
       document.querySelector("#installBanner").style.display = "none";
     });
     document.querySelector("#installBanner").style.display = "block";
+  });
+
+  // add event listeners for the offline and online events
+  // so that we can notify the user that the content is cached
+  // self.addEventListener("online", () => {
+  //   document.querySelector('.toast').style.display = 'block';
+  //   setTimeout(()=>{
+  //   document.querySelector('.toast').style.display = 'none';
+  //   },5000);
+  // });
+  if (navigator.onLine !== true) {
+    document.querySelector(".toast").style.display = "block";
+    setTimeout(() => {
+      document.querySelector(".toast").style.display = "none";
+    }, 5000);
+  }
+  self.addEventListener("offline", () => {
+    document.querySelector(".toast").style.display = "block";
+    const timeoutID = setTimeout(() => {
+      document.querySelector(".toast").style.display = "none";
+      clearTimeout(timeoutID);
+    }, 5000);
   });
   await renderArticles();
 })();
