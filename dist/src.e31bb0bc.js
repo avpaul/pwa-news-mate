@@ -157,10 +157,7 @@ const showArticle = ({
       </div>
 `;
   const node = document.createElement("template");
-  node.innerHTML = template; // node.content.children[0].addEventListener("click", () => {
-  //   showArticle(article);
-  // });
-
+  node.innerHTML = template;
   node.content.children[0].children[0].children[0].addEventListener("click", () => {
     hideArticle();
   });
@@ -243,6 +240,28 @@ const renderArticles = async () => {
       document.querySelector("#installBanner").style.display = "none";
     });
     document.querySelector("#installBanner").style.display = "block";
+  }); // add event listeners for the offline and online events
+  // so that we can notify the user that the content is cached
+  // self.addEventListener("online", () => {
+  //   document.querySelector('.toast').style.display = 'block';
+  //   setTimeout(()=>{
+  //   document.querySelector('.toast').style.display = 'none';
+  //   },5000);
+  // });
+
+  if (navigator.onLine !== true) {
+    document.querySelector(".toast").style.display = "block";
+    setTimeout(() => {
+      document.querySelector(".toast").style.display = "none";
+    }, 5000);
+  }
+
+  self.addEventListener("offline", () => {
+    document.querySelector(".toast").style.display = "block";
+    const timeoutID = setTimeout(() => {
+      document.querySelector(".toast").style.display = "none";
+      clearTimeout(timeoutID);
+    }, 5000);
   });
   await renderArticles();
 })();
@@ -274,7 +293,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "54923" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "56294" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
