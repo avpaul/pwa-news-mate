@@ -113,7 +113,7 @@ const renderArticles = async () => {
   // check if service worker API is supported
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker
-      .register("/serviceWorker.js", {})
+      .register("./serviceWorker.js", {})
       .then(registration => {
         console.log(
           `serviceWorker registered successfully with scope ${
