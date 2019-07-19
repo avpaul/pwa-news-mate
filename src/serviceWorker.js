@@ -7,7 +7,8 @@ self.addEventListener("install", event => {
         "/assets/logo_200.png",
         "/index.js",
         "/favicon-16x16.png",
-        "../favicon-32x32.png",
+        "/favicon-32x32.png",
+        "/android-chrome-192x192.png",
         "https://fonts.googleapis.com/css?family=Comfortaa:300,400,500,600,700&display=swap"
       ]);
     })
@@ -41,8 +42,7 @@ self.addEventListener("fetch", event => {
 self.addEventListener("push", event => {
   event.waitUntil(
     self.registration.showNotification(
-      "Push notifications changing your business!",
-      { "icon": "/android-chrome-192x192.png" }
+      "Push notifications changing your business!"
     )
   );
 });

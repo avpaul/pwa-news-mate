@@ -68,14 +68,7 @@ const getTopArticles = async (
 
 const renderArticles = async () => {
   const parent = document.getElementById("user-stories-group");
-  const storyTemplate = ({
-    title,
-    publishedAt,
-    source,
-    url,
-    urlToImage,
-    content
-  }) => {
+  const storyTemplate = ({ title, publishedAt, urlToImage }) => {
     const html = `
     <div class="story-container top-story">
               <div class="story-desc">
@@ -146,30 +139,32 @@ const renderArticles = async () => {
   });
 
   //Request for notification permission
-  if ("Notification" in window) {
-    Notification.requestPermission().then(result => {
-      if ((result = "denied")) {
-        console.log("permission denied");
-        return;
-      }
-      if ((result = "default")) {
-        console.log("The permission request was dismissed.");
-        return;
-      }
-      localStorage.setItem("notificationAllowed", "true");
-    });
-  }
+  const ID1 = setTimeout(() => {
+    if ("Notification" in window) {
+      Notification.requestPermission().then(result => {
+        if ((result = "denied")) {
+          console.log("permission denied");
+          return;
+        }
+        if ((result = "default")) {
+          console.log("The permission request was dismissed.");
+          return;
+        }
+      });
+    }
+    clearTimeout(ID1);
+  }, 5000);
 
   //send a push notification
-  if ("Notification" in window && Notification.permission === "granted") {
-    // navigator.serviceWorker.getRegistration().then()
-    const notification = new Notification(
-      "Welcome to the finest news in town!",
-      {
-        "icon": "/android-chrome-192x192.png"
-      }
-    );
-  }
+  const ID2 = setTimeout(() => {
+    if ("Notification" in window && Notification.permission === "granted") {
+      // navigator.serviceWorker.getRegistration().then()
+      const notification = new Notification(
+        "Welcome to the finest news in town!"
+      );
+    }
+    clearTimeout(ID2);
+  }, 10000);
   // add event listeners for the offline and online events
   // so that we can notify the user that the content is cached
   if (navigator.onLine !== true) {
