@@ -133,6 +133,7 @@ const renderArticles = async () => {
     // Stash the event so it can be triggered later.
     deferredPrompt = evt;
     document.querySelector("#installBtn").addEventListener("click", () => {
+      document.querySelector("#installBanner").style.display = "none";
       deferredPrompt.prompt();
       deferredPrompt.userChoice.then(choice => {
         deferredPrompt = null;
@@ -144,14 +145,33 @@ const renderArticles = async () => {
     document.querySelector("#installBanner").style.display = "block";
   });
 
+  //Request for notification permission
+  if ("Notification" in window) {
+    Notification.requestPermission().then(result => {
+      if ((result = "denied")) {
+        console.log("permission denied");
+        return;
+      }
+      if ((result = "default")) {
+        console.log("The permission request was dismissed.");
+        return;
+      }
+      localStorage.setItem("notificationAllowed", "true");
+    });
+  }
+
+  //send a push notification
+  if ("Notification" in window && Notification.permission === "granted") {
+    // navigator.serviceWorker.getRegistration().then()
+    const notification = new Notification(
+      "Welcome to the finest news in town!",
+      {
+        "icon": "/android-chrome-192x192.png"
+      }
+    );
+  }
   // add event listeners for the offline and online events
   // so that we can notify the user that the content is cached
-  // self.addEventListener("online", () => {
-  //   document.querySelector('.toast').style.display = 'block';
-  //   setTimeout(()=>{
-  //   document.querySelector('.toast').style.display = 'none';
-  //   },5000);
-  // });
   if (navigator.onLine !== true) {
     document.querySelector(".toast").style.display = "block";
     setTimeout(() => {

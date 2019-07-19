@@ -36,3 +36,13 @@ self.addEventListener("fetch", event => {
     })
   );
 });
+
+// Add an event listener for push API events
+self.addEventListener("push", event => {
+  event.waitUntil(
+    self.registration.showNotification(
+      "Push notifications changing your business!",
+      { "icon": "/android-chrome-192x192.png" }
+    )
+  );
+});

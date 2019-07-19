@@ -117,42 +117,175 @@ parcelRequire = (function (modules, cache, entry, globalName) {
   }
 
   return newRequire;
-})({"serviceWorker.js":[function(require,module,exports) {
-// cache files and requests
-const cacheName = "files";
-self.addEventListener("install", event => {
-  event.waitUntil(caches.open(cacheName).then(cache => {
-    cache.addAll(["/assets/logo_200.png", "/index.js", "/favicon-16x16.png", "../favicon-32x32.png", "https://fonts.googleapis.com/css?family=Comfortaa:300,400,500,600,700&display=swap"]);
-  }));
-}); // return requests with cached resources
+})({"index.js":[function(require,module,exports) {
+// variables and constants
+const API_KEY = "53347d537f0143dfb390e4a816c50efa";
+const URL_BASE = "https://newsapi.org/v2";
 
-self.addEventListener("fetch", event => {
-  event.respondWith(caches.match(event.request).then(response => {
-    if (response) {
-      return response;
-    }
+const hideArticle = () => {
+  document.querySelector(".container-back").remove();
+}; // get a single article
 
-    const requestToCache = event.request.clone();
-    return fetch(requestToCache).then(response => {
-      if (!response || response.status !== 200) {
-        return response;
+
+const showArticle = ({
+  title,
+  publishedAt,
+  source,
+  url,
+  urlToImage,
+  content
+}) => {
+  const parent = document.querySelector(".app-container");
+  const template = `
+<div class="container-back">
+        <div class="full-story-container">
+          <button class="action-btn">
+              <span>&#10005;</span>
+          </button>
+          <h4 class="story-title">${title}</h4>
+
+          <div class="story-img">
+            <img src=${urlToImage} alt="${title}" />
+          </div>
+          <div class="story-content">${content || "content not available"}</div>
+          <div class="story-desc">
+              <div class="story-category">life</div>
+              <div class="story-pub-date">${Math.round((new Date() - new Date(publishedAt)) / 3600000)} mins ago</div>
+              <div class="story-source">from ${source.name}</div>
+          </div>
+        </div>
+      </div>
+`;
+  const node = document.createElement("template");
+  node.innerHTML = template;
+  node.content.children[0].children[0].children[0].addEventListener("click", () => {
+    hideArticle();
+  });
+  parent.append(node.content);
+}; // get top articles
+
+
+const getTopArticles = async (preferredCategories = ["entertainment", "business", "technology"]) => {
+  const request = new Request(`${URL_BASE}/top-headlines?country=us&category=${preferredCategories[0]}&apiKey=${API_KEY}`, {
+    method: "GET"
+  });
+  return fetch(request).then(response => response.json()).then(data => data.articles);
+};
+
+const renderArticles = async () => {
+  const parent = document.getElementById("user-stories-group");
+
+  const storyTemplate = ({
+    title,
+    publishedAt,
+    source,
+    url,
+    urlToImage,
+    content
+  }) => {
+    const html = `
+    <div class="story-container top-story">
+              <div class="story-desc">
+                <h4 class="story-title">
+                  ${title}
+                </h4>
+                <div>
+                  <span class="story-category">life</span>
+                  <span class="story-pub-date">${Math.round((new Date() - new Date(publishedAt)) / 3600000)} mins ago</span>
+                </div>
+              </div>
+              <div class="story-img">
+                <img src=${urlToImage} alt=${title} />
+              </div>
+            </div>
+    `;
+    const template = document.createElement("template");
+    template.innerHTML = html;
+    return template.content;
+  };
+
+  const articles = await getTopArticles();
+  articles.forEach(article => {
+    const node = storyTemplate(article);
+    node.children[0].addEventListener("click", () => {
+      showArticle(article);
+    });
+    parent.append(node);
+  });
+};
+
+(async function init() {
+  // check if service worker API is supported
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("/serviceWorker.js", {}).then(registration => {
+      console.log(`serviceWorker registered successfully with scope ${registration.scope}`);
+    }).catch(error => {
+      console.log(`ServiceWorker registration failed with error ${error}`);
+    });
+  } // listen to beforeinstallprompt on window object to use a custom install banner for PWA
+
+
+  let deferredPrompt;
+  self.addEventListener("beforeinstallprompt", evt => {
+    evt.preventDefault(); // Stash the event so it can be triggered later.
+
+    deferredPrompt = evt;
+    document.querySelector("#installBtn").addEventListener("click", () => {
+      document.querySelector("#installBanner").style.display = "none";
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(choice => {
+        deferredPrompt = null;
+      });
+    });
+    document.querySelector("#cancel").addEventListener("click", () => {
+      document.querySelector("#installBanner").style.display = "none";
+    });
+    document.querySelector("#installBanner").style.display = "block";
+  }); //Request for notification permission
+
+  if ("Notification" in window) {
+    Notification.requestPermission().then(result => {
+      if (result = "denied") {
+        console.log("permission denied");
+        return;
       }
 
-      const responseToCache = response.clone();
-      caches.open(cacheName).then(cache => {
-        cache.put(requestToCache, responseToCache);
-      });
-      return response;
-    });
-  }));
-}); // Add an event listener for push API events
+      if (result = "default") {
+        console.log("The permission request was dismissed.");
+        return;
+      }
 
-self.addEventListener("push", event => {
-  event.waitUntil(self.registration.showNotification("Push notifications changing your business!", {
-    "icon": "/android-chrome-192x192.png"
-  }));
-});
-},{}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+      localStorage.setItem("notificationAllowed", "true");
+    });
+  } //send a push notification
+
+
+  if ("Notification" in window && Notification.permission === "granted") {
+    // navigator.serviceWorker.getRegistration().then()
+    const notification = new Notification("Welcome to the finest news in town!", {
+      "icon": "/android-chrome-192x192.png"
+    });
+  } // add event listeners for the offline and online events
+  // so that we can notify the user that the content is cached
+
+
+  if (navigator.onLine !== true) {
+    document.querySelector(".toast").style.display = "block";
+    setTimeout(() => {
+      document.querySelector(".toast").style.display = "none";
+    }, 5000);
+  }
+
+  self.addEventListener("offline", () => {
+    document.querySelector(".toast").style.display = "block";
+    const timeoutID = setTimeout(() => {
+      document.querySelector(".toast").style.display = "none";
+      clearTimeout(timeoutID);
+    }, 5000);
+  });
+  await renderArticles();
+})();
+},{"/Users/avpaul/code/news-mate/src/serviceWorker.js":[["serviceWorker.js","serviceWorker.js"],"serviceWorker.js.map","serviceWorker.js"]}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -355,5 +488,5 @@ function hmrAcceptRun(bundle, id) {
     return true;
   }
 }
-},{}]},{},["../node_modules/parcel-bundler/src/builtins/hmr-runtime.js","serviceWorker.js"], null)
-//# sourceMappingURL=/serviceWorker.js.map
+},{}]},{},["../node_modules/parcel-bundler/src/builtins/hmr-runtime.js","index.js"], null)
+//# sourceMappingURL=/src.e31bb0bc.js.map
