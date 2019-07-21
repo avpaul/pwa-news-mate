@@ -143,11 +143,9 @@ const renderArticles = async () => {
     if ("Notification" in window) {
       Notification.requestPermission().then(result => {
         if ((result = "denied")) {
-          console.log("permission denied");
           return;
         }
         if ((result = "default")) {
-          console.log("The permission request was dismissed.");
           return;
         }
       });
@@ -156,15 +154,15 @@ const renderArticles = async () => {
   }, 5000);
 
   //send a push notification
-  const ID2 = setTimeout(() => {
-    if ("Notification" in window && Notification.permission === "granted") {
-      // navigator.serviceWorker.getRegistration().then()
-      const notification = new Notification(
-        "Welcome to the finest news in town!"
-      );
-    }
-    clearTimeout(ID2);
-  }, 10000);
+  // const ID2 = setTimeout(() => {
+  //   if ("Notification" in window && Notification.permission === "granted") {
+  //     // navigator.serviceWorker.getRegistration().then()
+  //     const notification = new Notification(
+  //       "Welcome to the finest news in town!"
+  //     );
+  //   }
+  //   clearTimeout(ID2);
+  // }, 10000);
   // add event listeners for the offline and online events
   // so that we can notify the user that the content is cached
   if (navigator.onLine !== true) {
